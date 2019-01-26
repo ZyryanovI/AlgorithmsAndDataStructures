@@ -1,0 +1,126 @@
+/*Реализовать очередь с динамическим зацикленным буфером.
+Обрабатывать команды push back и pop front.
+В первой строке количество команд n. n ≤ 1000000.
+Каждая команда задаётся как 2 целых числа: a b.
+a = 2 - pop front
+a = 3 - push back
+Если дана команда pop front, то число b - ожидаемое значение. Если команда pop front вызвана для пустой структуры данных, то ожидается “-1”. */
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <vector>
+using namespace std;
+
+class MyStack{
+private:
+    int stack_size;
+    int buffersize=0;
+    int* buffer = new int[buffersize];
+    void grow()
+    {
+        int new_buffer_size= max(buffersize*2, 1);
+        int* new_buffer = new int[new_buffer_size];
+        for(int i=0; i<stack_size; i++)
+        {
+            new_buffer[i]=buffer[i];
+        }
+        delete[] buffer;
+        buffer=new_buffer;
+        buffersize=new_buffer_size;
+    }
+public:
+    MyStack(): stack_size(0)
+    {}
+    ~MyStack()
+    {
+        delete[] buffer;
+    }
+    int GetSize()
+    {
+        return stack_size; 
+    }
+    void push(int k)
+    {
+        if(stack_size==buffersize)
+            grow();
+        buffer[stack_size]=k;
+        stack_size++;
+    }
+    int pop()
+    {
+       if(stack_size==0)
+            return -1;
+       else
+       {
+           stack_size--;
+           return buffer[stack_size];
+       }
+    }
+};
+
+
+class MyQueue{
+private:
+    MyStack InStack;
+    MyStack OutStack;
+    void change()
+    {
+        int current_size = InStack.GetSize();
+        for(int i=0; i<current_size; i++)  
+        {
+            OutStack.push(InStack.pop());
+        }
+    }
+public:
+    ~MyQueue()
+    {}
+    void PushBack(int k)
+    {
+        InStack.push(k);
+    }
+    int PopFront()
+    {
+        if(OutStack.GetSize()==0)
+        {
+            change();
+        }
+        return OutStack.pop();
+    }
+
+};
+
+string Check(MyQueue &q, vector<pair <int, int> > &vect, int n)
+{
+    for(int i=0; i<n; i++)
+    {
+        if(vect[i].first==3)
+        {
+            q.PushBack(vect[i].second);
+        }
+        else
+        {
+            int front_element=q.PopFront();
+            if(front_element!=vect[i].second)
+            {
+                return "NO";
+            }
+        }
+    }
+    return "YES";
+}
+
+int main()
+{
+    int n=0;
+    cin>>n;
+    MyQueue q;
+    vector<pair <int, int> > vect(n);
+    for(int i=0; i<n; i++)
+    {
+        cin>>vect[i].first >> vect[i].second;
+    }
+    cout<<Check(q, vect, n);
+
+    return 0;
+}
